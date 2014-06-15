@@ -16,8 +16,7 @@
 
 ;;; Hard-coded list of the version/correction level/length values.
 ;;; Represented as: '((version . ((correction . length) (correction . length) [...])))
-(defvar *character-capacities* '(
-                                 (1 . ((L . 17) (M . 14) (Q . 11) (H . 7)))
+(defvar *character-capacities* '((1 . ((L . 17) (M . 14) (Q . 11) (H . 7)))
                                  (2 . ((L . 32) (M . 26) (Q . 20) (H . 14)))
                                  (3 . ((L . 53) (M . 42) (Q . 32) (H . 24)))
                                  (4 . ((L . 78) (M . 62) (Q . 46) (H . 34)))
@@ -56,9 +55,22 @@
                                  (37 . ((L . 2563) (M . 1989) (Q . 1423) (H . 1093)))
                                  (38 . ((L . 2699) (M . 2099) (Q . 1499) (H . 1139)))
                                  (39 . ((L . 2809) (M . 2213) (Q . 1579) (H . 1219)))
-                                 (40 . ((L . 2953) (M . 2331) (Q . 1663) (H . 1273)))
-                                 ))
+                                 (40 . ((L . 2953) (M . 2331) (Q . 1663) (H . 1273)))))
 
 (defun analyze-correction-level (text size)
-  "Finds out what's the best correction level for the provided text."
-  )
+  "Finds out what's the best version/correction level for the provided text."
+  (let* ((version-level (block version-level
+                          (let ((l (length text)))
+                            (do ((i (length *character-capacities*) (- i 1)))
+                                ((= i 0))
+                              (let* ((char-cap (nth i *character-capacities*))
+                                     (version (car char-cap))
+                                     (corrections (cdr char-cap)))
+                                (do ((j 0 (1+ j)))
+                                    ((= j (length corrections)))
+                                  (when (> l (cdr (nth j corrections)))
+                                    (return-from version-level (list version (car (nth (- j 1) corrections)))))))))))
+         (version (car version-level)))
+    (if (< size version)
+        (signal 'error)
+        version-level)))
