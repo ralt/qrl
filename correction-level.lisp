@@ -66,12 +66,11 @@
         version-level)))
 
 (defun calculate-version-level (text)
-  (do ((i (length *character-capacities*) (- i 1)))
-      ((= i 0))
-    (let* ((char-cap (nth i *character-capacities*))
-           (version (car char-cap))
-           (corrections (cdr char-cap)))
-      (do ((j 0 (1+ j)))
-          ((= j (length corrections)))
-        (when (> (length text) (cdr (nth j corrections)))
-          (return-from calculate-version-level (list version (car (nth (- j 1) corrections)))))))))
+  (loop for i from (length *character-capacities*) downto 0
+     do (let* ((char-cap (nth i *character-capacities*))
+               (version (car char-cap))
+               (corrections (cdr char-cap)))
+          (loop for j from 0 to (length corrections)
+             do (when (> (length text) (cdr (nth j corrections)))
+                  (return-from calculate-version-level
+                    (list version (car (nth (- j 1) corrections)))))))))
