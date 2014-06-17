@@ -2,12 +2,14 @@
 
 (defun bits-encode (text correction-level)
   "Encodes text in bits, according to the correction level."
-  (let ((version (car correction-level))
-        (correction (cdr correction-level)))
-    (alexandria:flatten (list (mode-indicator)
-                              (char-count-indicator text version)
-                              (text-encode text)
-                              (error-correction-codewords correction)))))
+  (let* ((version (car correction-level))
+         (correction (cdr correction-level))
+         (encoded-bits (fix-bits
+                        (alexandria:flatten
+                         (list (mode-indicator)
+                               (char-count-indicator text version)
+                               (text-encode text))))))
+         (error-correction-codewords version correction encoded-bits)))
 
 
 (defconstant byte-mode 0100)
@@ -47,7 +49,7 @@
                    collect d)
                 8)))
 
-(defun error-correction-codewords (correction)
+(defun error-correction-codewords (version correction encoded-bits)
   "Calculates the error correction codewords.")
 
 (defun left-pad (str len)
@@ -55,3 +57,6 @@
   (loop for i from 0 to (- len (length str) 1)
        do (setf str (cons #\0 str)))
   str)
+
+(defun fix-bits (bits)
+  "Fixes the bits to make sure it's correctly padded.")
