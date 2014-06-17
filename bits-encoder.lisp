@@ -14,7 +14,7 @@
 
 (defun mode-indicator ()
   "Mode indicators bits"
-  (loop for c across (write-to-string byte-mode) collect c))
+  (left-pad (loop for c across (write-to-string byte-mode) collect c) 4))
 
 ;;;; For versions 1 to 9, 8 bits
 (defvar *byte-mode-length* (make-hash-table :test 'equal))
@@ -37,12 +37,21 @@
   (let* ((number-of-bits-length (gethash version *byte-mode-length*))
          (binary-length (loop for c across (format nil "~b" (length text)) collect c)))
     ;; Needs padding with 0
-    (loop for i from 0 to (- number-of-bits-length (length binary-length) 1)
-         do (setf binary-length (cons #\0 binary-length)))
-    binary-length))
+    (left-pad binary-length number-of-bits-length)))
 
 (defun text-encode (text)
-  "Encodes the text in bits.")
+  "Encodes the text in bits."
+  (loop for c across text
+       collect (left-pad
+                (loop for d across (format nil "~b" (char-code c))
+                   collect d)
+                8)))
 
 (defun error-correction-codewords (correction)
   "Calculates the error correction codewords.")
+
+(defun left-pad (str len)
+  "Left-pads with 0 until specified length."
+  (loop for i from 0 to (- len (length str) 1)
+       do (setf str (cons #\0 str)))
+  str)
